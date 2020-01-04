@@ -6,5 +6,4 @@ CREATE TABLE issues(
     title VARCHAR(255) NOT NULL,
     repo VARCHAR(255) NOT NULL,
     language VARCHAR(30) NULL,
-    url VARCHAR(512) NOT NULL,
     platform VARCHAR(30) NOT NULL);

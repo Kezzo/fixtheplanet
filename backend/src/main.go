@@ -1,85 +1,59 @@
 package main
 
 import (
-	"bytes"
-	"database/sql"
-	"encoding/json"
-	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
+	"strconv"
 
-	_ "github.com/go-sql-driver/mysql"
+	"github.com/Kezzo/fixtheplanet/src/common"
 )
 
 func main() {
-	db, err := sql.Open("mysql", "root:local-password@tcp(127.0.0.1:3306)/fixtheplanet")
+	log.Println("Starting server...")
+
+	db, err := common.InitDatabase()
 
 	if err != nil {
 		log.Panicln(err.Error())
 	}
-	defer db.Close()
 
-	// Open doesn't open a connection. Validate DSN data:
-	err = db.Ping()
-	if err != nil {
-		log.Panicln(err.Error())
-	}
-
-	log.Println("Connection to database verified!")
-
-	_, err = db.Exec("USE fixtheplanet")
-	if err != nil {
-		log.Panicln(err.Error())
-	}
-
-	_, err = db.Exec("CREATE TABLE example ( id integer, data varchar(32) )")
-	if err != nil {
-		panic(err)
-	}
+	//db.SQLDB.Close()
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("It's alive!"))
 	})
 
 	http.HandleFunc("/gitdata", func(w http.ResponseWriter, r *http.Request) {
-
-		fileData, err := ioutil.ReadFile("../queries/get-issues.gql")
-
-		if err != nil {
-			log.Fatal(err)
-			w.WriteHeader(500)
-		}
-
-		mapData := map[string]string{
-			"query":     string(fileData),
-			"variables": "",
-		}
-		requestBody, err := json.Marshal(mapData)
+		resp, err := common.GetIssuesFromGithub()
 
 		if err != nil {
-			log.Fatal(err)
-			w.WriteHeader(500)
+			log.Println(err.Error())
+			http.Error(w, err.Error(), 500)
 		}
 
-		req, err := http.NewRequest("POST", "https://api.github.com/graphql", bytes.NewBuffer(requestBody))
-		req.Header.Add("Authorization", "bearer "+os.Getenv("GITHUB-TOKEN"))
-		client := &http.Client{}
-		resp, err := client.Do(req)
-
+		insert, err := db.SQLDB.Prepare("INSERT INTO issues VALUES( ?, ?, ?, ?, ? )") // ? = placeholder
 		if err != nil {
-			log.Fatal(err)
-			w.WriteHeader(500)
+			panic(err.Error())
 		}
 
-		bodyBytes, err := ioutil.ReadAll(resp.Body)
+		defer insert.Close()
 
-		if err != nil {
-			log.Fatal(err)
-			w.WriteHeader(500)
+		count := 0
+		for _, repo := range resp.Data.Search.Edges {
+			for _, issue := range repo.Node.Issues.Edges {
+				_, err = insert.Exec(nil, issue.Node.Title, repo.Node.NameWithOwner, repo.Node.PrimaryLanguage.Name, "github")
+				if err != nil {
+					log.Println("Error inserting issue: " + err.Error())
+				} else {
+					count++
+				}
+			}
 		}
 
-		w.Write(bodyBytes)
+		respString := "Inserted " + strconv.Itoa(count) + " issues into database"
+
+		log.Println(respString)
+		w.Write([]byte(respString))
 	})
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
