@@ -117,7 +117,6 @@ func insertIssuesIntoDB(db *common.Database, resp *common.GithubResponse) (int, 
 }
 
 func queryIssues(db *common.Database, languages []string) ([]Issue, error) {
-
 	queryString := "SELECT * FROM issues"
 
 	for i := 0; i < len(languages); i++ {
@@ -140,7 +139,14 @@ func queryIssues(db *common.Database, languages []string) ([]Issue, error) {
 
 	var rows *sql.Rows
 	if languages != nil && len(languages) > 0 {
-		rows, err = stmt.Query(languages)
+		var inputValues []interface{}
+		inputValues = make([]interface{}, len(languages))
+
+		for i, language := range languages {
+			inputValues[i] = language
+		}
+
+		rows, err = stmt.Query(inputValues...)
 	} else {
 		rows, err = stmt.Query()
 	}
