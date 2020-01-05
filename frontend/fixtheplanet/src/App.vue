@@ -19,6 +19,9 @@ export default {
     SearchBar,
   },
   methods: {
+    getBaseUrl() {
+      return process.env.VUE_APP_BASE_URL;
+    },
     searchIssues() {
       let langFilter = "";
 
@@ -29,7 +32,7 @@ export default {
         }
       });
 
-      fetch("http://localhost:80/issues" + langFilter)
+      fetch(this.getBaseUrl() + "/issues" + langFilter)
       .then((resp) => {
         resp.json().then(json => {
           //console.log(json);
