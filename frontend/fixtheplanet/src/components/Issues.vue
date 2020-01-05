@@ -1,6 +1,5 @@
 <template>
     <div>
-        <h1>Issues:</h1>
         <div class="issues-container" v-bind:key="issue.Title" v-for="issue in issues">
             <div class="left-whitespace"> </div>
             <div class="issue-inner-container"> 
