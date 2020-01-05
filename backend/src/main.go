@@ -14,6 +14,7 @@ import (
 type Issue struct {
 	Title    string
 	Repo     string
+	Number   int
 	Language string
 }
 
@@ -95,7 +96,7 @@ func main() {
 }
 
 func insertIssuesIntoDB(db *common.Database, resp *common.GithubResponse) (int, error) {
-	stmt, err := db.SQLDB.Prepare("INSERT INTO issues VALUES( ?, ?, ?, ? )")
+	stmt, err := db.SQLDB.Prepare("INSERT INTO issues VALUES( ?, ?, ?, ?, ? )")
 	if err != nil {
 		return 0, err
 	}
@@ -105,7 +106,7 @@ func insertIssuesIntoDB(db *common.Database, resp *common.GithubResponse) (int, 
 	count := 0
 	for _, repo := range resp.Data.Search.Edges {
 		for _, issue := range repo.Node.Issues.Edges {
-			_, err = stmt.Exec(nil, issue.Node.Title, repo.Node.NameWithOwner, repo.Node.PrimaryLanguage.Name)
+			_, err = stmt.Exec(nil, issue.Node.Title, repo.Node.NameWithOwner, issue.Node.Number, repo.Node.PrimaryLanguage.Name)
 			if err != nil {
 				log.Println("Error inserting issue: " + err.Error())
 			} else {
@@ -156,20 +157,20 @@ func queryIssues(db *common.Database, languages []string) ([]Issue, error) {
 		return nil, err
 	}
 
-	issues := make([]Issue, 20)
+	issues := make([]Issue, 0)
 	issueID := ""
 
 	defer rows.Close()
 	count := 0
 	for rows.Next() {
 		issue := Issue{}
-		err = rows.Scan(&issueID, &issue.Title, &issue.Repo, &issue.Language)
+		err = rows.Scan(&issueID, &issue.Title, &issue.Repo, &issue.Number, &issue.Language)
 
 		if err != nil {
 			return nil, err
 		}
 
-		issues[count] = issue
+		issues = append(issues, issue)
 		count++
 	}
 

@@ -41,7 +41,8 @@ type GithubRepository struct {
 // GithubIssue ..
 type GithubIssue struct {
 	Node struct {
-		Title string `json:"title"`
+		Title  string `json:"title"`
+		Number int    `json:"number"`
 	} `json:"node"`
 }
 
