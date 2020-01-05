@@ -66,6 +66,7 @@ func main() {
 			http.Error(w, err.Error(), 500)
 		}
 
+		w.Header().Add("Access-Control-Allow-Origin", "http://localhost:8080")
 		w.Write(respBytes)
 	})
 
@@ -90,7 +91,7 @@ func main() {
 		w.Write([]byte(respString))
 	})
 
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(":80", nil))
 }
 
 func insertIssuesIntoDB(db *common.Database, resp *common.GithubResponse) (int, error) {
