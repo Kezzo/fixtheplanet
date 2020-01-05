@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <SearchBar v-bind:mainLanguages="mainLanguages" v-on:search-issues="searchIssues" />
+    <SearchBar v-bind:selectedLanguages="selectedLanguages" v-on:search-issues="searchIssues" v-on:select-language="selectLanguage" />
     <Issues v-bind:issues="issues" />
   </div>
 </template>
@@ -20,7 +20,16 @@ export default {
   },
   methods: {
     searchIssues() {
-      fetch("http://localhost:80/issues")
+      let langFilter = "";
+
+      this.selectedLanguages.forEach(lang => {
+        if(lang.IsSelected) {
+          langFilter += langFilter == "" ? "?" : "&";
+          langFilter += "language=" + lang.Language;
+        }
+      });
+
+      fetch("http://localhost:80/issues" + langFilter)
       .then((resp) => {
         resp.json().then(json => {
           //console.log(json);
@@ -29,12 +38,19 @@ export default {
           //console.log(JSON.stringify(this.languageColors));
 
           this.issues.forEach(issue => {
-            issue.LangColor = this.languageColors[issue.Language].color;
+            issue.LangColor = issue.Language in this.languageColors ? this.languageColors[issue.Language].color : "#ffffff";
           });
         })
         .catch(err => console.log(err));
       })
       .catch(err => console.log(err));
+    },
+    selectLanguage(selectedLang) {
+      this.selectedLanguages.forEach(lang => {
+        if(lang.Language == selectedLang.Language){
+          lang.IsSelected = !lang.IsSelected;
+        }
+      })
     }
   },
   data() {
@@ -42,10 +58,18 @@ export default {
       issues: [],
       languageColors: langColors,
       mainLanguages: mainLangs,
+      selectedLanguages: [],
     }
   },
   created() {
     this.searchIssues();
+
+    this.mainLanguages.forEach(lang => {
+      this.selectedLanguages.push({
+        Language: lang,
+        IsSelected: false
+      })
+    });
   }
 }
 </script>

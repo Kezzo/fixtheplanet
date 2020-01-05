@@ -15,7 +15,7 @@ export default {
     props: ["issue"],
     methods: {
         openRepo() {
-            var win = window.open("https://github.com/" + this.issue.Repo);
+            var win = window.open("https://github.com/" + this.issue.Repo + "/issues/" + this.issue.Number);
             win.focus();
         }
     }

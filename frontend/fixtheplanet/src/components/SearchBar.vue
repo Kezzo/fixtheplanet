@@ -4,8 +4,8 @@
         <div class="searchbar-inner-container">
             <div>
                 <div class="lang-selection">
-                    <div class="lang-filter" v-bind:key="lang" v-for="lang in mainLanguages">
-                        <div class="lang-filter-text">{{lang}}</div>
+                    <div class="lang-filter" @click="select(lang)" v-bind:class="{'selected-lang-filter':lang.IsSelected }" v-bind:key="lang.Language" v-for="lang in selectedLanguages">
+                        <div class="lang-filter-text">{{lang.Language}}</div>
                     </div>
                 </div>
             </div>
@@ -19,10 +19,13 @@
 
 <script>
 export default {
-    props: ["mainLanguages"],
+    props: ["selectedLanguages"],
     methods: {
         searchIssues() {
-            this.$emit('search-issues')
+            this.$emit('search-issues');
+        },
+        select(lang) {
+            this.$emit('select-language', lang);
         }
     }
 }
@@ -65,6 +68,9 @@ export default {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
+    align-items: stretch;
+    align-content: stretch;
+    width: 600px;
 
     grid-column-start: 1;
     grid-column-end: 2;
@@ -79,9 +85,11 @@ export default {
     border-radius: 5px;
 
     cursor: pointer;
+
+    flex-grow: 1;
 }
 
-.lang-filter:hover{
+.selected-lang-filter{
     background: #0a81d1;
     color: #f2f2f2;
 }
