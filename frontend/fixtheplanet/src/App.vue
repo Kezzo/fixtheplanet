@@ -1,17 +1,32 @@
 <template>
   <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <Issues v-bind:issues="issues" />
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import Issues from './components/Issues';
 
 export default {
   name: 'app',
   components: {
-    HelloWorld
+    Issues
+  },
+  data() {
+    return {
+      issues: []
+    }
+  },
+  created() {
+    fetch("http://localhost:80/issues")
+    .then((resp) => {
+      resp.json().then(json => {
+        //console.log(json);
+        this.issues = json.Issues;
+      })
+      .catch(err => console.log(err));
+    })
+    .catch(err => console.log(err));
   }
 }
 </script>
