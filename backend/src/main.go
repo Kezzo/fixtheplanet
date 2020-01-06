@@ -56,6 +56,7 @@ func main() {
 		if err != nil {
 			log.Println(err.Error())
 			http.Error(w, err.Error(), 500)
+			return
 		}
 
 		resp := IssueResponse{
@@ -67,6 +68,7 @@ func main() {
 		if err != nil {
 			log.Println(err.Error())
 			http.Error(w, err.Error(), 500)
+			return
 		}
 
 		w.Header().Add("Access-Control-Allow-Origin", "*")
@@ -74,18 +76,28 @@ func main() {
 	})
 
 	http.HandleFunc("/gitdata", func(w http.ResponseWriter, r *http.Request) {
+		token := r.Header.Get("x-token")
+		envToken := os.Getenv("GIT-PATH-TOKEN")
+
+		if token != envToken {
+			http.Error(w, "", http.StatusUnauthorized)
+			return
+		}
+
 		resp, err := common.GetIssuesFromGithub()
 
 		if err != nil {
 			log.Println(err.Error())
-			http.Error(w, err.Error(), 500)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
 
 		inserted, err := insertIssuesIntoDB(db, resp)
 
 		if err != nil {
 			log.Println(err.Error())
-			http.Error(w, err.Error(), 500)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
 
 		respString := "Inserted " + strconv.Itoa(inserted) + " issues into database"
@@ -100,7 +112,6 @@ func main() {
 		listener := autocert.NewListener("cloud.fixthepla.net")
 		log.Fatal(http.Serve(listener, nil))
 	}
-
 }
 
 func insertIssuesIntoDB(db *common.Database, resp *common.GithubResponse) (int, error) {
