@@ -12,6 +12,8 @@ import Issues from './components/Issues';
 import langColors from './assets/lang-colors.json'
 import mainLangs from './assets/main-langs.json'
 
+import _ from 'underscore';
+
 export default {
   name: 'app',
   components: {
@@ -36,7 +38,15 @@ export default {
       .then((resp) => {
         resp.json().then(json => {
           //console.log(json);
-          this.issues = json.Issues;
+          this.issues = [];
+
+          json.Issues.forEach(jsonIssue => {
+            const exists = _.some(this.issues, issue => { return _.isEqual(issue, jsonIssue) })
+
+            if(!exists) {
+              this.issues.push(jsonIssue);
+            }
+          });
 
           //console.log(JSON.stringify(this.languageColors));
 
