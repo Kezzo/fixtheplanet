@@ -8,4 +8,6 @@ ADD bin/main ./
 ADD queries/get-issues.gql ./queries/get-issues.gql
 
 EXPOSE 80/tcp
+EXPOSE 443/tcp
+
 CMD ["/main"]

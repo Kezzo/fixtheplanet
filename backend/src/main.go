@@ -5,9 +5,11 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/Kezzo/fixtheplanet/src/common"
+	"golang.org/x/crypto/acme/autocert"
 )
 
 // Issue ..
@@ -92,7 +94,13 @@ func main() {
 		w.Write([]byte(respString))
 	})
 
-	log.Fatal(http.ListenAndServe(":80", nil))
+	if os.Getenv("ENV") == "LOCAL" {
+		log.Fatal(http.ListenAndServe(":80", nil))
+	} else {
+		listener := autocert.NewListener("cloud.fixthepla.net")
+		log.Fatal(http.Serve(listener, nil))
+	}
+
 }
 
 func insertIssuesIntoDB(db *common.Database, resp *common.GithubResponse) (int, error) {
