@@ -3,6 +3,7 @@ package common
 import (
 	"database/sql"
 	"log"
+	"os"
 
 	// sql driver
 	_ "github.com/go-sql-driver/mysql"
@@ -15,7 +16,7 @@ type Database struct {
 
 // InitDatabase ..
 func InitDatabase() (*Database, error) {
-	db, err := sql.Open("mysql", "root:local-password@tcp(127.0.0.1:3306)/fixtheplanet")
+	db, err := sql.Open("mysql", os.Getenv("DB-DSN"))
 
 	if err != nil {
 		return nil, err
