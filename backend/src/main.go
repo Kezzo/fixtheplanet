@@ -69,7 +69,7 @@ func main() {
 			http.Error(w, err.Error(), 500)
 		}
 
-		w.Header().Add("Access-Control-Allow-Origin", "http://localhost:8080")
+		w.Header().Add("Access-Control-Allow-Origin", "*")
 		w.Write(respBytes)
 	})
 
