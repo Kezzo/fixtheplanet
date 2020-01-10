@@ -55,8 +55,8 @@ export default {
     background: #f4f4f4;
 
     display: grid;
-    grid-template-columns: auto, 100px;
-    grid-template-rows: 100%;
+    grid-template-rows: auto, 100px;
+    grid-template-columns: 100%;
 }
 
 .right-whitespace{
@@ -66,14 +66,16 @@ export default {
 
 .lang-selection{
     display: flex;
+    
     flex-direction: row;
     flex-wrap: wrap;
     align-items: stretch;
     align-content: stretch;
-    width: 60%;
 
-    grid-column-start: 1;
-    grid-column-end: 2;
+    grid-row-start: 1;
+    grid-row-end: 2;
+
+    width: 70%;
 }
 
 .lang-filter{
@@ -95,8 +97,8 @@ export default {
 }
 
 .search-button-parent{
-    grid-column-start: 2;
-    grid-column-end: 3;
+    grid-row-start: 2;
+    grid-row-end: 3;
 }
 
 .search-button{
