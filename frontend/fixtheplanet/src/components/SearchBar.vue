@@ -41,12 +41,6 @@ export default {
     padding-bottom: 15px;
 }
 
-@media screen and (max-width: 930px) {
-    .search-container{
-        grid-template-columns: 0% auto 0%;
-    }
-}
-
 .left-whitespace{
     grid-column-start: 1;
     grid-column-end: 2;
@@ -76,7 +70,7 @@ export default {
     flex-wrap: wrap;
     align-items: stretch;
     align-content: stretch;
-    width: 600px;
+    width: 60%;
 
     grid-column-start: 1;
     grid-column-end: 2;
@@ -124,6 +118,16 @@ export default {
 
 .search-button:hover {
     background: #3aa9f2;
+}
+
+@media screen and (max-width: 930px) {
+    .search-container{
+        grid-template-columns: 0% auto 0%;
+    }
+
+    .lang-selection{
+        width: 100%;
+    }
 }
 
 </style>
