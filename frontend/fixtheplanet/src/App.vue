@@ -63,7 +63,9 @@ export default {
         if(lang.Language == selectedLang.Language){
           lang.IsSelected = !lang.IsSelected;
         }
-      })
+      });
+
+      this.searchIssues();
     }
   },
   data() {
