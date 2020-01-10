@@ -41,6 +41,12 @@ export default {
     padding-bottom: 15px;
 }
 
+@media screen and (max-width: 930px) {
+    .search-container{
+        grid-template-columns: 0% auto 0%;
+    }
+}
+
 .left-whitespace{
     grid-column-start: 1;
     grid-column-end: 2;

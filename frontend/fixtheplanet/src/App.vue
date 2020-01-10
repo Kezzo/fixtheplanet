@@ -94,6 +94,11 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
+}
+
+@media screen and (min-width: 931px) {
+  #app {
+    margin-top: 60px;
+  }
 }
 </style>

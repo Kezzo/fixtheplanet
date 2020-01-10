@@ -30,6 +30,12 @@ export default {
     grid-template-rows: 100%;
 }
 
+@media screen and (max-width: 930px) {
+    .issues-container{
+        grid-template-columns: 0% auto 0%;
+    }
+}
+
 .left-whitespace{
     grid-column-start: 1;
     grid-column-end: 2;
