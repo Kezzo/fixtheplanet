@@ -29,7 +29,7 @@ export default {
         border-bottom: 1px #ccc solid;
 
         display: grid;
-        grid-template-columns: 15% auto 20%;
+        grid-template-columns: 15% auto 25%;
         grid-template-rows: 100%;
 
         grid-column-gap: 20px;
