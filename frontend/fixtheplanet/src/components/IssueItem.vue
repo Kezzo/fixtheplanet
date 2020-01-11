@@ -41,6 +41,12 @@ export default {
         background: darkseagreen;
     }
 
+@media (hover: none) {
+    .issue-item:hover {
+        background: #f4f4f4;
+    }
+}
+
     .issue-title{
         grid-column-start: 2;
         grid-column-end: 3;
