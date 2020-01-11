@@ -56,7 +56,7 @@ export default {
         grid-column-end: 4;
 
         align-self: center;
-        text-align: left;
+        text-align: center;
     }
 
     .issue-lang{
