@@ -124,11 +124,16 @@ export default {
 
 @media screen and (max-width: 930px) {
     .search-container{
-        grid-template-columns: 0% auto 0%;
+        grid-template-columns: auto;
+        grid-template-rows: auto auto;
     }
 
     .lang-selection{
         width: 100%;
+    }
+
+    .search-button{
+        margin-top: 10px;
     }
 }
 
