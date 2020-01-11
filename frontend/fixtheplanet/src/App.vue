@@ -30,7 +30,7 @@ export default {
       this.selectedLanguages.forEach(lang => {
         if(lang.IsSelected) {
           langFilter += langFilter == "" ? "?" : "&";
-          langFilter += "language=" + lang.Language;
+          langFilter += "language=" + encodeURIComponent(lang.Language);
         }
       });
 
