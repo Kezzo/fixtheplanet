@@ -5,7 +5,7 @@
             <span class="lang-text">{{issue.Language}}</span>
         </div>
         <div class="issue-title"> <p>{{issue.Title}}</p> </div>
-        <div class="issue-repo"> <p>{{issue.Repo}}</p> </div>
+        <div class="issue-repo"> <span class="issue-repo-span">{{issue.Repo}}</span> </div>
     </div>
 </template>
 
@@ -48,10 +48,11 @@ export default {
         align-self: stretch;
 
         text-align: left;
-        
     }
 
     .issue-repo{
+        display: grid;
+
         grid-column-start: 3;
         grid-column-end: 4;
 
@@ -65,11 +66,70 @@ export default {
 
         align-self: center;
         text-align: left;
-        padding-left: 15px;
+        margin-left: 15px;
+
+        display: grid;
+        grid-template-columns: 15px auto;
+
+        width: 100px;
     }
 
+@media screen and (max-width: 930px) {
+    .issue-item{
+        grid-template-columns: 15% auto;
+        grid-template-rows: 30% auto;
+    }   
+
+    .issue-title{
+        grid-row-start: 2;
+        grid-row-end: 3;
+        grid-column-start: 2;
+        grid-column-end: 4;
+    }
+
+    .issue-repo{
+        grid-row-start: 1;
+        grid-row-end: 2;
+
+        grid-column-start: 2;
+        grid-column-end: 3;
+
+        text-align: left;
+
+        margin-top: 15px;
+    }
+
+    .issue-lang{
+        grid-row-start: 1;
+        grid-row-end: 3;
+    }
+}
+
+@media screen and (max-width: 755px) {
+    .issue-item {
+        grid-template-columns: 100px auto;
+        grid-template-rows: 30% auto;
+    }
+
+    .issue-lang{
+        grid-row-start: 1;
+        grid-row-end: 2;
+
+        grid-column-start: 1;
+        grid-column-end: 2;
+
+        margin-top: 15px;
+    }
+
+    .issue-title{
+        grid-column-start: 1;
+        grid-column-end: 4;
+
+        margin-left: 15px;
+    }
+}
+
     .lang-circle {
-        display: inline-block;
         width: 15px;
         height: 15px;
         position: relative;
@@ -81,4 +141,9 @@ export default {
         padding-left: 5px;
         font-size: 15px;
     }
+
+    .issue-repo-span{
+        font-style: italic;
+    }
+
 </style>
