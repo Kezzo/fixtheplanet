@@ -1,22 +1,25 @@
 <template>
   <div id="app">
+    <TopBar />
     <SearchBar v-bind:selectedLanguages="selectedLanguages" v-on:search-issues="searchIssues" v-on:select-language="selectLanguage" />
     <Issues v-bind:issues="issues" />
   </div>
 </template>
 
 <script>
-import SearchBar from './components/SearchBar'
+import TopBar from './components/TopBar';
+import SearchBar from './components/SearchBar';
 import Issues from './components/Issues';
 
-import langColors from './assets/lang-colors.json'
-import mainLangs from './assets/main-langs.json'
+import langColors from './assets/lang-colors.json';
+import mainLangs from './assets/main-langs.json';
 
 import _ from 'underscore';
 
 export default {
   name: 'app',
   components: {
+    TopBar,
     Issues,
     SearchBar,
   },
@@ -96,11 +99,5 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-}
-
-@media screen and (min-width: 931px) {
-  #app {
-    margin-top: 60px;
-  }
 }
 </style>
