@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/Kezzo/fixtheplanet/src/common"
 	"golang.org/x/crypto/acme/autocert"
@@ -41,6 +42,16 @@ func main() {
 	})
 
 	http.HandleFunc("/issues", func(w http.ResponseWriter, r *http.Request) {
+		unixTime := time.Now().Unix()
+
+		if db.LastActiveTableCheckTime+60 <= unixTime {
+			err := db.CheckActiveTable()
+
+			if err != nil {
+				log.Println("ERROR: " + err.Error())
+			}
+		}
+
 		query := r.URL.Query()
 		languages := query["language"]
 
@@ -84,6 +95,16 @@ func main() {
 			return
 		}
 
+		nextActiveTable := "issues" + strconv.FormatInt(time.Now().Unix(), 10)
+
+		err := db.CreateNextIssuesTable(&nextActiveTable)
+
+		if err != nil {
+			log.Println(err.Error())
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
 		resp, err := common.GetIssuesFromGithub()
 
 		if err != nil {
@@ -92,7 +113,7 @@ func main() {
 			return
 		}
 
-		inserted, err := insertIssuesIntoDB(db, resp)
+		inserted, err := insertIssuesIntoDB(&nextActiveTable, db, resp)
 
 		if err != nil {
 			log.Println(err.Error())
@@ -101,6 +122,14 @@ func main() {
 		}
 
 		respString := "Inserted " + strconv.Itoa(inserted) + " issues into database"
+
+		err = db.AddActiveTableEntry(&nextActiveTable)
+
+		if err != nil {
+			log.Println(err.Error())
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
 		log.Println(respString)
 		w.Write([]byte(respString))
@@ -114,8 +143,8 @@ func main() {
 	}
 }
 
-func insertIssuesIntoDB(db *common.Database, resp *common.GithubResponse) (int, error) {
-	stmt, err := db.SQLDB.Prepare("INSERT INTO issues VALUES( ?, ?, ?, ?, ? )")
+func insertIssuesIntoDB(table *string, db *common.Database, resp *common.GithubResponse) (int, error) {
+	stmt, err := db.SQLDB.Prepare("INSERT INTO " + *table + " VALUES( ?, ?, ?, ?, ? )")
 	if err != nil {
 		return 0, err
 	}
@@ -138,7 +167,7 @@ func insertIssuesIntoDB(db *common.Database, resp *common.GithubResponse) (int, 
 }
 
 func queryIssues(db *common.Database, languages []string) ([]Issue, error) {
-	queryString := "SELECT * FROM issues"
+	queryString := "SELECT * FROM " + db.ActiveTable
 
 	for i := 0; i < len(languages); i++ {
 		if i == 0 {
@@ -176,10 +205,11 @@ func queryIssues(db *common.Database, languages []string) ([]Issue, error) {
 		return nil, err
 	}
 
+	defer rows.Close()
+
 	issues := make([]Issue, 0)
 	issueID := ""
 
-	defer rows.Close()
 	count := 0
 	for rows.Next() {
 		issue := Issue{}

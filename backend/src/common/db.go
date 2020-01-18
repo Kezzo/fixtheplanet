@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log"
 	"os"
+	"time"
 
 	// sql driver
 	_ "github.com/go-sql-driver/mysql"
@@ -11,7 +12,9 @@ import (
 
 // Database ..
 type Database struct {
-	SQLDB *sql.DB
+	SQLDB                    *sql.DB
+	LastActiveTableCheckTime int64
+	ActiveTable              string
 }
 
 // InitDatabase ..
@@ -34,4 +37,78 @@ func InitDatabase() (*Database, error) {
 	return &Database{
 		SQLDB: db,
 	}, nil
+}
+
+// CheckActiveTable ..
+func (db *Database) CheckActiveTable() error {
+	db.LastActiveTableCheckTime = time.Now().Unix()
+
+	stmt, err := db.SQLDB.Prepare("SELECT * FROM active_tables ORDER BY creation_time LIMIT 1")
+
+	if err != nil {
+		return err
+	}
+
+	defer stmt.Close()
+
+	rows, err := stmt.Query()
+
+	if err != nil {
+		return err
+	}
+
+	defer rows.Close()
+
+	var tableID int
+	var tableName string
+	var creationTime string
+
+	for rows.Next() {
+		err = rows.Scan(&tableID, &tableName, &creationTime)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	err = rows.Err()
+
+	if err != nil {
+		return err
+	}
+
+	db.ActiveTable = tableName
+	return nil
+}
+
+// CreateNextIssuesTable ..
+func (db *Database) CreateNextIssuesTable(tableName *string) error {
+	query := "CREATE TABLE " + *tableName + "(issue_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY, title VARCHAR(255) NOT NULL, repo VARCHAR(255) NOT NULL, issueNr INT NOT NULL, language VARCHAR(30) NULL)"
+
+	stmt, err := db.SQLDB.Prepare(query)
+
+	if err != nil {
+		return err
+	}
+
+	defer stmt.Close()
+
+	_, err = stmt.Exec()
+
+	return err
+}
+
+// AddActiveTableEntry ..
+func (db *Database) AddActiveTableEntry(tableName *string) error {
+	stmt, err := db.SQLDB.Prepare("INSERT INTO active_tables VALUES( ?, ?, CURRENT_TIMESTAMP() )")
+
+	if err != nil {
+		return err
+	}
+
+	defer stmt.Close()
+
+	_, err = stmt.Exec(nil, tableName)
+
+	return err
 }
