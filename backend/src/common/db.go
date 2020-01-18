@@ -26,7 +26,7 @@ func InitDatabase() (*Database, error) {
 	}
 
 	// Open doesn't open a connection. Validate DSN data:
-	err = db.Ping()
+	err = CheckConnection(db)
 
 	if err != nil {
 		return nil, err
@@ -37,6 +37,25 @@ func InitDatabase() (*Database, error) {
 	return &Database{
 		SQLDB: db,
 	}, nil
+}
+
+// CheckConnection ..
+func CheckConnection(db *sql.DB) error {
+	var err error
+
+	for try := 0; try < 5; try++ {
+		log.Println("Checking connection to database")
+		err = db.Ping()
+
+		if err == nil {
+			return nil
+		}
+
+		log.Println("Database not ready, trying again in 5")
+		time.Sleep(5 * time.Second)
+	}
+
+	return err
 }
 
 // CheckActiveTable ..
