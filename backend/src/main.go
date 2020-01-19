@@ -146,6 +146,14 @@ func main() {
 			return
 		}
 
+		err = db.DeleteOldIssuesTables()
+
+		if err != nil {
+			log.Println(err.Error())
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
 		log.Println(respString)
 		w.Write([]byte(respString))
 	})

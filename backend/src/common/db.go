@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log"
 	"os"
+	"sort"
 	"time"
 
 	// sql driver
@@ -15,6 +16,13 @@ type Database struct {
 	SQLDB                    *sql.DB
 	LastActiveTableCheckTime int64
 	ActiveTable              string
+}
+
+// ActiveTableRow ..
+type ActiveTableRow struct {
+	TableID      int
+	TableName    string
+	CreationTime time.Time
 }
 
 // InitDatabase ..
@@ -128,6 +136,102 @@ func (db *Database) AddActiveTableEntry(tableName *string) error {
 	defer stmt.Close()
 
 	_, err = stmt.Exec(nil, tableName)
+
+	return err
+}
+
+// DeleteOldIssuesTables ..
+func (db *Database) DeleteOldIssuesTables() error {
+	stmt, err := db.SQLDB.Prepare("SELECT * FROM active_tables ORDER BY creation_time")
+
+	if err != nil {
+		return err
+	}
+
+	defer stmt.Close()
+
+	rows, err := stmt.Query()
+
+	if err != nil {
+		return err
+	}
+
+	defer rows.Close()
+
+	activeTables := make([]ActiveTableRow, 0)
+
+	for rows.Next() {
+		activeTable := ActiveTableRow{}
+		var timeString string
+
+		err = rows.Scan(&activeTable.TableID, &activeTable.TableName, &timeString)
+
+		if err != nil {
+			return err
+		}
+
+		activeTable.CreationTime, err = time.Parse("2006-01-02 15:04:05", timeString)
+
+		if err != nil {
+			log.Println(err.Error())
+		}
+
+		activeTables = append(activeTables, activeTable)
+	}
+
+	err = rows.Err()
+
+	if err != nil {
+		return err
+	}
+
+	sort.SliceIsSorted(activeTables, func(i, j int) bool {
+		return activeTables[i].CreationTime.Before(activeTables[j].CreationTime)
+	})
+
+	for i := 0; i < len(activeTables)-2; i++ {
+
+		err := db.DeleteTable(activeTables[i].TableName)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// DeleteTable ..
+func (db *Database) DeleteTable(tableName string) error {
+	log.Println("Deleting table: " + tableName)
+	stmt, err := db.SQLDB.Prepare("DROP TABLE IF EXISTS " + tableName)
+
+	if err != nil {
+		return err
+	}
+
+	defer stmt.Close()
+
+	_, err = stmt.Exec()
+
+	if err != nil {
+		return err
+	}
+
+	return db.DeleteActiveTableEntry(tableName)
+}
+
+// DeleteActiveTableEntry ..
+func (db *Database) DeleteActiveTableEntry(tableName string) error {
+	stmt, err := db.SQLDB.Prepare("DELETE FROM active_tables WHERE table_name = ?")
+
+	if err != nil {
+		return err
+	}
+
+	defer stmt.Close()
+
+	_, err = stmt.Exec(tableName)
 
 	return err
 }
