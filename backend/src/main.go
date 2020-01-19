@@ -105,23 +105,38 @@ func main() {
 			return
 		}
 
-		resp, err := common.GetIssuesFromGithub()
+		lastCursor := ""
+		lastPageFound := false
+		insertedTotal := 0
 
-		if err != nil {
-			log.Println(err.Error())
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+		for !lastPageFound {
+			resp, err := common.GetIssuesFromGithub(lastCursor)
+
+			if err != nil {
+				log.Println(err.Error())
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			if len(resp.Data.Search.Edges) == 0 {
+				lastPageFound = true
+			} else {
+				lastRepo := resp.Data.Search.Edges[len(resp.Data.Search.Edges)-1]
+				lastCursor = lastRepo.Cursor
+
+				inserted, err := insertIssuesIntoDB(&nextActiveTable, db, resp)
+
+				if err != nil {
+					log.Println(err.Error())
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+
+				insertedTotal += inserted
+			}
 		}
 
-		inserted, err := insertIssuesIntoDB(&nextActiveTable, db, resp)
-
-		if err != nil {
-			log.Println(err.Error())
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		respString := "Inserted " + strconv.Itoa(inserted) + " issues into database"
+		respString := "Inserted " + strconv.Itoa(insertedTotal) + " issues into database"
 
 		err = db.AddActiveTableEntry(&nextActiveTable)
 

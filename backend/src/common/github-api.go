@@ -46,18 +46,50 @@ type GithubIssue struct {
 	} `json:"node"`
 }
 
+// CursorVar ..
+type CursorVar struct {
+	LastCursor string `json:"lastCursor"`
+}
+
 // GetIssuesFromGithub ..
-func GetIssuesFromGithub() (*GithubResponse, error) {
-	fileData, err := ioutil.ReadFile("../queries/get-issues.gql")
+func GetIssuesFromGithub(lastCursor string) (*GithubResponse, error) {
 
-	if err != nil {
-		return nil, err
+	var mapData map[string]string
+
+	if lastCursor == "" {
+		fileData, err := ioutil.ReadFile("../queries/get-issues.gql")
+
+		if err != nil {
+			return nil, err
+		}
+
+		mapData = map[string]string{
+			"query":     string(fileData),
+			"variables": "",
+		}
+	} else {
+		fileData, err := ioutil.ReadFile("../queries/get-issues-paginated.gql")
+
+		if err != nil {
+			return nil, err
+		}
+
+		queryVar := CursorVar{
+			LastCursor: lastCursor,
+		}
+
+		queryVarJSON, err := json.Marshal(queryVar)
+
+		if err != nil {
+			return nil, err
+		}
+
+		mapData = map[string]string{
+			"query":     string(fileData),
+			"variables": string(queryVarJSON),
+		}
 	}
 
-	mapData := map[string]string{
-		"query":     string(fileData),
-		"variables": "",
-	}
 	requestBody, err := json.Marshal(mapData)
 
 	if err != nil {
