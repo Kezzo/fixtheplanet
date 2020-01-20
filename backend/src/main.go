@@ -42,6 +42,8 @@ func main() {
 	})
 
 	http.HandleFunc("/issues", func(w http.ResponseWriter, r *http.Request) {
+		log.Println("Received /issues")
+
 		unixTime := time.Now().Unix()
 
 		if db.LastActiveTableCheckTime+60 <= unixTime {
@@ -87,6 +89,8 @@ func main() {
 	})
 
 	http.HandleFunc("/gitdata", func(w http.ResponseWriter, r *http.Request) {
+		log.Println("Received /gitdata")
+
 		token := r.Header.Get("x-token")
 		envToken := os.Getenv("GIT-PATH-TOKEN")
 
@@ -161,7 +165,11 @@ func main() {
 	if os.Getenv("ENV") == "LOCAL" {
 		log.Fatal(http.ListenAndServe(":80", nil))
 	} else {
+		log.Println("Starting https listener")
+
 		listener := autocert.NewListener("cloud.fixthepla.net")
+
+		log.Println("Received https listener, serving http requests")
 		log.Fatal(http.Serve(listener, nil))
 	}
 }
