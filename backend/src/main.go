@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"database/sql"
 	"encoding/json"
 	"log"
@@ -167,10 +168,24 @@ func main() {
 	} else {
 		log.Println("Starting https listener")
 
-		listener := autocert.NewListener("cloud.fixthepla.net")
+		certManager := autocert.Manager{
+			Prompt:     autocert.AcceptTOS,
+			HostPolicy: autocert.HostWhitelist("cloud.fixthepla.net"),
+			Cache:      autocert.DirCache("/tmp/certs"),
+		}
+		server := &http.Server{
+			Addr: ":https",
+			TLSConfig: &tls.Config{
+				GetCertificate: certManager.GetCertificate,
+			},
+		}
 
-		log.Println("Received https listener, serving http requests")
-		log.Fatal(http.Serve(listener, nil))
+		go func() {
+			h := certManager.HTTPHandler(nil)
+			log.Fatal(http.ListenAndServe(":http", h))
+		}()
+
+		log.Fatal(server.ListenAndServeTLS("", ""))
 	}
 }
 
