@@ -6,6 +6,7 @@ COPY --from=certs /etc/ssl/certs /etc/ssl/certs
 
 ADD bin/main ./
 ADD queries/get-issues.gql ./queries/get-issues.gql
+ADD queries/get-issues-paginated.gql ./queries/get-issues-paginated.gql
 
 EXPOSE 80/tcp
 EXPOSE 443/tcp
