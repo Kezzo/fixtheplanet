@@ -5,9 +5,11 @@ import (
 	"database/sql"
 	"encoding/json"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Kezzo/fixtheplanet/src/common"
@@ -24,7 +26,9 @@ type Issue struct {
 
 // IssueResponse ..
 type IssueResponse struct {
-	Issues []Issue
+	Issues     []Issue
+	PagingSeed int
+	NextOffset int
 }
 
 func main() {
@@ -65,7 +69,31 @@ func main() {
 			}
 		}
 
-		issues, err := queryIssues(db, languages)
+		pagingSeeds := query["seed"]
+		pagingSeed := 0
+
+		if len(pagingSeeds) > 0 && pagingSeeds[0] != "" {
+			pagingSeed, err = strconv.Atoi(pagingSeeds[0])
+
+			if err != nil {
+				http.Error(w, "Url Param 'seed' is invalid", http.StatusBadRequest)
+				return
+			}
+		}
+
+		pagingOffsets := query["offset"]
+		pagingOffSet := 0
+
+		if len(pagingOffsets) > 0 && pagingOffsets[0] != "" {
+			pagingOffSet, err = strconv.Atoi(pagingOffsets[0])
+
+			if err != nil {
+				http.Error(w, "Url Param 'offset' is invalid", http.StatusBadRequest)
+				return
+			}
+		}
+
+		issues, nextPagingSeed, nextPagingOffset, err := queryIssues(db, languages, pagingSeed, pagingOffSet)
 
 		if err != nil {
 			log.Println(err.Error())
@@ -74,7 +102,9 @@ func main() {
 		}
 
 		resp := IssueResponse{
-			Issues: issues,
+			Issues:     issues,
+			PagingSeed: nextPagingSeed,
+			NextOffset: nextPagingOffset,
 		}
 
 		respBytes, err := json.Marshal(resp)
@@ -212,23 +242,38 @@ func insertIssuesIntoDB(table *string, db *common.Database, resp *common.GithubR
 	return count, nil
 }
 
-func queryIssues(db *common.Database, languages []string) ([]Issue, error) {
-	queryString := "SELECT * FROM " + db.ActiveTable
+func queryIssues(db *common.Database, languages []string, pagingSeed int, pagingOffset int) (nextIssues []Issue, nextPagingSeed int, nextPagingOffset int, err error) {
+	var queryStringBuilder strings.Builder
+
+	queryStringBuilder.WriteString("SELECT * FROM ")
+	queryStringBuilder.WriteString(db.ActiveTable)
 
 	for i := 0; i < len(languages); i++ {
 		if i == 0 {
-			queryString += " WHERE language = ?"
+			queryStringBuilder.WriteString(" WHERE language = ?")
 		} else {
-			queryString += " OR language = ?"
+			queryStringBuilder.WriteString(" OR language = ?")
 		}
 	}
 
-	queryString += " ORDER BY RAND() LIMIT 20" // TODO: Implement proper random pagination
+	pageSize := 20
 
-	stmt, err := db.SQLDB.Prepare(queryString)
+	if pagingSeed == 0 {
+		pagingSeed = rand.Int()
+	}
+
+	queryStringBuilder.WriteString(" ORDER BY RAND(")
+	queryStringBuilder.WriteString(strconv.Itoa((pagingSeed)))
+	queryStringBuilder.WriteString(") LIMIT ")
+	queryStringBuilder.WriteString(strconv.Itoa((pageSize)))
+
+	queryStringBuilder.WriteString(" OFFSET ")
+	queryStringBuilder.WriteString(strconv.Itoa((pagingOffset)))
+
+	stmt, err := db.SQLDB.Prepare(queryStringBuilder.String())
 
 	if err != nil {
-		return nil, err
+		return nil, 0, 0, err
 	}
 
 	defer stmt.Close()
@@ -248,7 +293,7 @@ func queryIssues(db *common.Database, languages []string) ([]Issue, error) {
 	}
 
 	if err != nil {
-		return nil, err
+		return nil, 0, 0, err
 	}
 
 	defer rows.Close()
@@ -262,7 +307,7 @@ func queryIssues(db *common.Database, languages []string) ([]Issue, error) {
 		err = rows.Scan(&issueID, &issue.Title, &issue.Repo, &issue.Number, &issue.Language)
 
 		if err != nil {
-			return nil, err
+			return nil, 0, 0, err
 		}
 
 		issues = append(issues, issue)
@@ -272,8 +317,10 @@ func queryIssues(db *common.Database, languages []string) ([]Issue, error) {
 	err = rows.Err()
 
 	if err != nil {
-		return nil, err
+		return nil, 0, 0, err
 	}
 
-	return issues, nil
+	pagingOffset += pageSize
+
+	return issues, pagingSeed, pagingOffset, nil
 }

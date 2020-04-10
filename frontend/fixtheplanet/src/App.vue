@@ -27,21 +27,32 @@ export default {
     getBaseUrl() {
       return process.env.VUE_APP_BASE_URL;
     },
-    searchIssues() {
-      let langFilter = "";
+    searchIssues(reset) {
+      if(reset) {
+        this.resetList();
+      }
+
+      let urlParams = "";
 
       this.selectedLanguages.forEach(lang => {
         if(lang.IsSelected) {
-          langFilter += langFilter == "" ? "?" : "&";
-          langFilter += "language=" + encodeURIComponent(lang.Language);
+          urlParams += urlParams == "" ? "?" : "&";
+          urlParams += "language=" + encodeURIComponent(lang.Language);
         }
       });
 
-      fetch(this.getBaseUrl() + "/issues" + langFilter)
+      urlParams += urlParams == "" ? "?seed=" : "&seed=";
+      urlParams += this.pagingSeed;
+      urlParams += "&offset=" + this.pagingOffset;
+
+      fetch(this.getBaseUrl() + "/issues" + urlParams)
       .then((resp) => {
         resp.json().then(json => {
+
+          this.pagingSeed = json.PagingSeed;
+          this.pagingOffset = json.NextOffset;
           //console.log(json);
-          this.issues = [];
+          //this.issues = [];
 
           json.Issues.forEach(jsonIssue => {
             const exists = _.some(this.issues, issue => { return _.isEqual(issue, jsonIssue) })
@@ -56,6 +67,8 @@ export default {
           this.issues.forEach(issue => {
             issue.LangColor = issue.Language in this.languageColors ? this.languageColors[issue.Language].color : "#ffffff";
           });
+
+          this.queryingNextPage = false;
         })
         .catch(err => console.log(err));
       })
@@ -68,15 +81,33 @@ export default {
         }
       });
 
-      this.searchIssues();
+      this.searchIssues(true);
+    },
+    onScroll() {
+      var scrolledToBottom = (document.documentElement.scrollTop + window.innerHeight) >= (document.documentElement.offsetHeight - 100);
+      
+      if(scrolledToBottom && !this.queryingNextPage)
+      {
+        this.queryingNextPage = true;
+        this.searchIssues(false);
+      }
+    },
+    resetList() {
+      this.issues = [];
+      this.pagingSeed = 0;
+      this.pagingOffset = 0;
     }
   },
+  
   data() {
     return {
       issues: [],
       languageColors: langColors,
       mainLanguages: mainLangs,
       selectedLanguages: [],
+      pagingSeed: 0,
+      pagingOffset: 0,
+      queryingNextPage: false
     }
   },
   created() {
@@ -88,6 +119,8 @@ export default {
         IsSelected: false
       })
     });
+
+    window.onscroll = this.onScroll;
   }
 }
 </script>

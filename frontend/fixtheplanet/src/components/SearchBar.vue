@@ -22,7 +22,7 @@ export default {
     props: ["selectedLanguages"],
     methods: {
         searchIssues() {
-            this.$emit('search-issues');
+            this.$emit('search-issues', true);
         },
         select(lang) {
             this.$emit('select-language', lang);
