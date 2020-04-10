@@ -5,7 +5,10 @@
             <p class="repo-text">Repository</p>
         </div>
 
-        <h1 class="website-name">fixthepla.net</h1>
+        <div class="website-name">
+            <h1 class="website-name-name">fixthepla.net</h1>
+            <h4 class="website-name-desc">Helps you contribute to open source projects.</h4>
+        </div>
     </div>
 </template>
 
@@ -73,6 +76,14 @@ export default {
     
     margin-bottom: 10px;
     margin-left: 10px;
+}
+
+.website-name-name{
+    margin: 0px;
+}
+
+.website-name-desc{
+    margin: 0px;
 }
 
 @media screen and (max-width: 930px) {
