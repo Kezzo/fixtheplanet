@@ -66,6 +66,10 @@ export default {
 
           this.issues.forEach(issue => {
             issue.LangColor = issue.Language in this.languageColors ? this.languageColors[issue.Language].color : "#ffffff";
+            issue.Labels.forEach(label => {
+              var colorInDec = parseInt(label.Color.charAt(0), 16);
+              label.TextColor = colorInDec > 8 ? "#000000" : "#ffffff";
+            });
           });
 
           this.queryingNextPage = false;

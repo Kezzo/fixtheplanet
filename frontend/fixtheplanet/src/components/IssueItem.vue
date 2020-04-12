@@ -4,7 +4,16 @@
             <span class="lang-circle" v-bind:style="{ background: issue.LangColor}"></span>
             <span class="lang-text">{{issue.Language}}</span>
         </div>
-        <div class="issue-title"> <p>{{issue.Title}}</p> </div>
+        <div class="issue-title">
+            <div class="issue-title-name"> <p>{{issue.Title}}</p> </div>
+
+            <div class="issue-labels">
+                <div class="issue-label-name" v-bind:style="{ background: '#'+label.Color, color: label.TextColor }" v-bind:key="label.Name" v-for="label in issue.Labels">
+                    <p class="issue-label-name-text">{{label.Name}}</p>
+                </div>
+            </div>
+
+        </div>
         <div class="issue-repo"> <span class="issue-repo-span">{{issue.Repo}}</span> </div>
     </div>
 </template>
@@ -51,9 +60,35 @@ export default {
         grid-column-start: 2;
         grid-column-end: 3;
 
-        align-self: stretch;
-
         text-align: left;
+    }
+
+    .issue-labels{
+        display: flex;
+    
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .issue-title-name{
+        margin-top: -5px;
+    }
+
+    .issue-label-name{
+        border-radius: 2px;
+        padding-top: 0.15em;
+        padding-right: 4px;
+        padding-bottom: 0.15em;
+        padding-left: 4px;
+
+        margin-right: 5px;
+
+        margin-top: -5px;
+        margin-bottom: 5px;
+    }
+
+    .issue-label-name-text{
+        margin: 0;
     }
 
     .issue-repo{
