@@ -8,6 +8,12 @@
               node {
                 title
                 number
+                labels(first: 3) {
+                  nodes {
+                    name
+                    color
+                  }
+                }
               }
             }
             totalCount

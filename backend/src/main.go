@@ -22,6 +22,13 @@ type Issue struct {
 	Repo     string
 	Number   int
 	Language string
+	Labels   []IssueLabel
+}
+
+// IssueLabel ..
+type IssueLabel struct {
+	Name  string
+	Color string
 }
 
 // IssueResponse ..
@@ -220,7 +227,7 @@ func main() {
 }
 
 func insertIssuesIntoDB(table *string, db *common.Database, resp *common.GithubResponse) (int, error) {
-	stmt, err := db.SQLDB.Prepare("INSERT INTO " + *table + " VALUES( ?, ?, ?, ?, ? )")
+	stmt, err := db.SQLDB.Prepare("INSERT INTO " + *table + " VALUES( ?, ?, ?, ?, ?, ? )")
 	if err != nil {
 		return 0, err
 	}
@@ -230,7 +237,23 @@ func insertIssuesIntoDB(table *string, db *common.Database, resp *common.GithubR
 	count := 0
 	for _, repo := range resp.Data.Search.Edges {
 		for _, issue := range repo.Node.Issues.Edges {
-			_, err = stmt.Exec(nil, issue.Node.Title, repo.Node.NameWithOwner, issue.Node.Number, repo.Node.PrimaryLanguage.Name)
+
+			labels := make([]IssueLabel, len(issue.Node.Labels.Nodes))
+			for i, issueLabel := range issue.Node.Labels.Nodes {
+				labels[i] = IssueLabel{
+					Name:  issueLabel.Name,
+					Color: issueLabel.Color,
+				}
+			}
+
+			labelBytes, err := json.Marshal(labels)
+
+			if err != nil {
+				log.Println("Error marshalling issue labels: " + err.Error())
+				continue
+			}
+
+			_, err = stmt.Exec(nil, issue.Node.Title, repo.Node.NameWithOwner, issue.Node.Number, repo.Node.PrimaryLanguage.Name, labelBytes)
 			if err != nil {
 				log.Println("Error inserting issue: " + err.Error())
 			} else {
@@ -304,7 +327,15 @@ func queryIssues(db *common.Database, languages []string, pagingSeed int, paging
 	count := 0
 	for rows.Next() {
 		issue := Issue{}
-		err = rows.Scan(&issueID, &issue.Title, &issue.Repo, &issue.Number, &issue.Language)
+		var labelBytes []byte
+
+		err = rows.Scan(&issueID, &issue.Title, &issue.Repo, &issue.Number, &issue.Language, &labelBytes)
+
+		if err != nil {
+			return nil, 0, 0, err
+		}
+
+		err = json.Unmarshal(labelBytes, &issue.Labels)
 
 		if err != nil {
 			return nil, 0, 0, err

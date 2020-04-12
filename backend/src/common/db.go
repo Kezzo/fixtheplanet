@@ -110,7 +110,7 @@ func (db *Database) CheckActiveTable() error {
 
 // CreateNextIssuesTable ..
 func (db *Database) CreateNextIssuesTable(tableName *string) error {
-	query := "CREATE TABLE " + *tableName + "(issue_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY, title VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL, repo VARCHAR(255) NOT NULL, issueNr INT NOT NULL, language VARCHAR(30) NULL) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
+	query := "CREATE TABLE " + *tableName + "(issue_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY, title VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL, repo VARCHAR(255) NOT NULL, issueNr INT NOT NULL, language VARCHAR(30) NULL, labels LONGBLOB NULL) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
 
 	stmt, err := db.SQLDB.Prepare(query)
 

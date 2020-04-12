@@ -3,6 +3,7 @@ package common
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -43,7 +44,16 @@ type GithubIssue struct {
 	Node struct {
 		Title  string `json:"title"`
 		Number int    `json:"number"`
+		Labels struct {
+			Nodes []GithubIssueLabel `json:"nodes"`
+		} `json:"labels"`
 	} `json:"node"`
+}
+
+// GithubIssueLabel ..
+type GithubIssueLabel struct {
+	Name  string `json:"name"`
+	Color string `json:"color"`
 }
 
 // CursorVar ..
@@ -119,6 +129,11 @@ func GetIssuesFromGithub(lastCursor string) (*GithubResponse, error) {
 
 	if err != nil {
 		return nil, err
+	}
+
+	if resp.StatusCode != 200 {
+		log.Println(string(bodyBytes[:]))
+		return nil, errors.New(string(bodyBytes[:]))
 	}
 
 	//log.Println(string(bodyBytes[:len(bodyBytes)]))
