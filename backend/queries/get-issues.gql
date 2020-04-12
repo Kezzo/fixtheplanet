@@ -1,9 +1,9 @@
 {
-  search(query: "is:public stars:>2000 good-first-issues:>0 help-wanted-issues:>0", type: REPOSITORY, first: 100) {
+  search(query: "is:public stars:>2000 good-first-issues:>0 help-wanted-issues:>0", type: REPOSITORY, first: 50) {
     edges {
       node {
         ... on Repository {
-          issues(filterBy: {states: OPEN, labels: "good first issue"}, first: 100) {
+          issues(filterBy: {states: OPEN, labels: "good first issue"}, first: 50) {
             edges {
               node {
                 title
