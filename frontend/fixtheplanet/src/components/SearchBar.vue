@@ -2,11 +2,10 @@
     <div class="search-container">
         <div class="left-whitespace"></div>
         <div class="searchbar-inner-container">
-            <div>
-                <div class="lang-selection">
-                    <div class="lang-filter" @click="select(lang)" v-bind:class="{'selected-lang-filter':lang.IsSelected }" v-bind:key="lang.Language" v-for="lang in selectedLanguages">
-                        <div class="lang-filter-text">{{lang.Language}}</div>
-                    </div>
+            <div class="lang-selection">
+                <div class="lang-filter" @click="select(lang)" v-bind:class="{'selected-lang-filter':lang.IsSelected }" 
+                    v-bind:key="lang.Language" v-for="lang in selectedLanguages" v-bind:style="{ background: lang.Color, color: lang.TextColor }">
+                    <div class="lang-filter-text">{{lang.Language}}</div>
                 </div>
             </div>
             <div class="search-button-parent" >
@@ -38,7 +37,7 @@ export default {
     grid-template-columns: 10% auto 10%;
     grid-template-rows: 100%;
 
-    padding-bottom: 15px;
+    padding-bottom: 0px;
 }
 
 .left-whitespace{
@@ -55,8 +54,8 @@ export default {
     background: #f4f4f4;
 
     display: grid;
-    grid-template-rows: auto, 100px;
-    grid-template-columns: 100%;
+    grid-template-rows: 100%;
+    grid-template-columns: auto, 100px;
 }
 
 .right-whitespace{
@@ -72,16 +71,15 @@ export default {
     align-items: stretch;
     align-content: stretch;
 
-    grid-row-start: 1;
-    grid-row-end: 2;
+    grid-column-start: 1;
+    grid-column-end: 2;
 
     width: 70%;
 }
 
 .lang-filter{
-    background: white;
-    border: 1px solid #0a81d1;
     padding: 15px 15px;
+    margin: 5px 5px;
     text-align: center;
     text-decoration: none;
     border-radius: 5px;
@@ -92,13 +90,14 @@ export default {
 }
 
 .selected-lang-filter{
-    background: #0a81d1;
-    color: #f2f2f2;
+    box-shadow: 0 0 5px 3px gray;
 }
 
 .search-button-parent{
-    grid-row-start: 2;
-    grid-row-end: 3;
+    grid-column-start: 2;
+    grid-column-end: 3;
+
+    align-self: end;
 }
 
 .search-button{
@@ -122,6 +121,10 @@ export default {
     background: #3aa9f2;
 }
 
+.lang-filter:hover {
+    background: #3aa9f2;
+}
+
 @media screen and (max-width: 930px) {
     .search-container{
         grid-template-columns: auto;
@@ -133,7 +136,7 @@ export default {
     }
 
     .search-button{
-        margin-top: 10px;
+        margin-bottom: 5px;
     }
 }
 

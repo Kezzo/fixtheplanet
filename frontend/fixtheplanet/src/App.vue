@@ -29,7 +29,8 @@ export default {
     },
     searchIssues(reset) {
       if(reset) {
-        this.resetList();
+        this.pagingSeed = 0;
+        this.pagingOffset = 0;
       }
 
       let urlParams = "";
@@ -48,6 +49,10 @@ export default {
       fetch(this.getBaseUrl() + "/issues" + urlParams)
       .then((resp) => {
         resp.json().then(json => {
+
+          if(reset) {
+            this.issues = [];
+          }
 
           this.pagingSeed = json.PagingSeed;
           this.pagingOffset = json.NextOffset;
@@ -118,8 +123,14 @@ export default {
     this.searchIssues();
 
     this.mainLanguages.forEach(lang => {
+      let color = lang in this.languageColors ? this.languageColors[lang].color : "#ffffff";
+      let colorInDec = parseInt(color.charAt(1), 16);
+      let textColor = colorInDec > 8 ? "#000000" : "#ffffff";
+
       this.selectedLanguages.push({
         Language: lang,
+        Color: color,
+        TextColor: textColor,
         IsSelected: false
       })
     });
@@ -136,5 +147,10 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
+  background:whitesmoke;
+}
+
+body {
+  margin: 0px;
 }
 </style>
